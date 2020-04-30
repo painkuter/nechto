@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="cache-control" content="no-cache"/>
+    <title>Nechto</title>
+    <style>
+        #your_turn {
+            display: none;
+        }
+    </style>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            //TODO: get room URL
+            var conn;
+            var command = $("#command");
+            var log = $("#log");
+            //var name = window.prompt("Your name");
+            var name = "pName";
+            var host = "{{.Host}}";
+            if (window["WebSocket"]) {//supported device list?
+                roomURL = window.location.href.substring(window.location.href.indexOf(host) + host.length + 5); //rewrite it
+                console.log(roomURL);
+                conn = new WebSocket("ws://" + host + "/ws?room=" + roomURL + "&name=" + name);
+                conn.onopen = function () {
+                    console.log("Connected");
+                };
+                conn.onclose = function (evt) {
+                    console.log("Connection closed");
+                };
+                conn.onmessage = function (evt) {
+                    //parse data to JSON
+                    var message = JSON.parse(evt.data);
+                    console.log("Parsed");
+                    switch (message.status) {
+                        case "start":
+                            console.log("start");
+                            log.val(log.val() + '\n' + "game started");
+                            break;
+                        case "stop":
+                            console.log("stop");
+                            log.val(log.val() + '\n' + "player " + message.body + " gave up");
+                            break;
+                        case "game":
+                            console.log(evt.data);
+
+                        default:
+                            console.log("Parsing error");
+                            log.val(log.val() + '\n' + evt.data);
+                    }
+                }
+            } else {
+                window.alert("Sorry, your device does not supported");
+            }});
+    </script>
+</head>
+<body>
+
+<h1>Hello</h1>
+<p>Room name: <a href="/room/{{.RoomName}}">{{.RoomName}}</a></p>
+<p>Players number: {{.Players}}</p>
+введите имя - <input> <button>OK</button><br>
+ <button id="start_game">начать игру</button>
+</body>
+</html>
